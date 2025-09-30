@@ -14,6 +14,20 @@ counter_lock = Lock()
 stop_event = Event()
 global_packet_limit = 0
 
+def display_hex_dump(hex_data):
+    print(f"\nHex Dump: ")
+    bytes_line = 16
+
+    for i in range(0, len(hex_data), bytes_line * 2):
+        offset = i // 2
+        print(f"  {offset:04x}  ", end="")
+
+        hex_line = ""
+        for j in range(i, min(i + bytes_line * 2, len(hex_data)), 2):
+            hex_line += f"{hex_data[j:j+2]} "
+
+        print(hex_line)
+    print()
 
 # Function to handle each captured packet
 def packet_callback(packet):
@@ -24,6 +38,7 @@ def packet_callback(packet):
             print(f"\nCaptured Packet {packet_counter}:")
             raw_data = bytes(packet)
             hex_data = raw_data.hex()
+            display_hex_dump(hex_data)
             ether_type, payload = parse_ethernet_header(hex_data)
 
             # Stop capturing if the limit is reached
