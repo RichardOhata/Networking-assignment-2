@@ -223,3 +223,4 @@ def parse_icmpv6_header(hex_data):
     print(f"  {'Type:':<25} {hex_data[0:2]:<20} | {icmp_type}")
     print(f"  {'Code:':<25} {hex_data[2:4]:<20} | {icmp_code}")
     print(f"  {'Checksum:':<25} {hex_data[4:8]:<20} | {checksum}")
+#
