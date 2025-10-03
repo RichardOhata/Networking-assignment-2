@@ -137,6 +137,7 @@ def parse_udp_header(hex_data):
     checksum = int(hex_data[52:56], 16)
     payload = hex_data[56:]
 
+    is_dns = source_port == 53 or dest_port == 53
 
     print(f"UDP Header:")
     print(f"  {'Source Port:':<25} {hex_data[40:44]:<20} | {source_port}")
@@ -144,6 +145,10 @@ def parse_udp_header(hex_data):
     print(f"  {'Length:':<25} {hex_data[48:52]:<20} | {length}")
     print(f"  {'Checksum:':<25} {hex_data[52:56]:<20} | {checksum}")
     print(f"  {'Payload (hex):':<25} {payload[:32]}")
+
+    if is_dns:
+        parse_dns(payload)
+
 
 # Parse TCP Header
 def parse_tcp_header(hex_data):
@@ -174,6 +179,9 @@ def parse_tcp_header(hex_data):
     payload_index = 40 + data_offset*8
 
     payload = hex_data[payload_index:payload_index+64] if payload_index < len(hex_data) else ""
+
+    is_dns = source_port == 53 or dest_port == 53
+
     print(f"TCP Header:")
 
     print(f"  {'Source Port:':<25} {hex_data[40:44]:<20} | {source_port}")
@@ -199,6 +207,9 @@ def parse_tcp_header(hex_data):
     print(f"  {'Urgent Pointer:':<25} {hex_data[76:80]:<20} | {urgent_pointer}")
     print(f"  {'Payload (hex):':<25} {hex_data[payload_index:payload_index+32]}")
 
+    if is_dns:
+        parse_dns(payload)
+
 # Parse ICMP Header
 def parse_icmp_header(hex_data):
 
@@ -223,4 +234,56 @@ def parse_icmpv6_header(hex_data):
     print(f"  {'Type:':<25} {hex_data[0:2]:<20} | {icmp_type}")
     print(f"  {'Code:':<25} {hex_data[2:4]:<20} | {icmp_code}")
     print(f"  {'Checksum:':<25} {hex_data[4:8]:<20} | {checksum}")
+
+def parse_dns(hex_data):
+    if len(hex_data) < 24:
+        print("DNS payload too short to parse header")
+        return
+    transaction_id = hex_data[:4]
+    flags = hex_data[4:8]
+    qdcount = int(hex_data[8:12], 16)
+    ancount = int(hex_data[12:16], 16)
+    nscount = int(hex_data[16:20], 16)
+    arcount = int(hex_data[20:24], 16)
+
+    print(f"DNS Header:")
+    print(f"  {'Transaction ID:':<25} {transaction_id}")
+    print(f"  {'Flags:':<25} {flags}")
+    print(f"  {'Questions:':<25} {qdcount}")
+    print(f"  {'Answers:':<25} {ancount}")
+    print(f"  {'Authority RRs:':<25} {nscount}")
+    print(f"  {'Additional RRs:':<25} {arcount}")
+
+
+
+# Testing each protocol commands
+# (ARP)
+# sudo python3 main.py -i any -c 1 -f arp
+# arping -c 1 <target_IP>
+
+#  sudo arping -c 1 192.168.0.9
+# (IPV4 / TCP)
+# sudo python3 main.py -i any -c 1 -f tcp
+# curl http://<target_IP>
 #
+# (UDP)
+# sudo python3 main.py -i any -c 1 -f udp
+# echo "Hello" | ncat --udp 192.168.0.1 12345
+#
+# (DNS (UDP/TCP))
+#  ping -c 1 google.com
+#  dig +tcp google.com
+#
+# (ICMP)
+# sudo python3 main.py -i any -c 1 -f icmp
+# ping -c 1 8.8.8.8
+
+# (IPV6 / ICMPv6)
+# sudo python3 main.py -i any -c 1 -f ipv6
+# ping6 -c 1 google.com
+
+
+
+
+
+
